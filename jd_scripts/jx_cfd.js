@@ -259,7 +259,8 @@ function queryFriendIsland(strShareId,){
         try {
           //$.log(`\n获取好友信息\n${data}`);
           const {SceneList = {},dwStealMoney,sErrMsg,strFriendNick} = JSON.parse(data);
-          if (sErrMsg === "success" && dwStealMoney > 0) {
+          //if (sErrMsg === "success" && dwStealMoney > 0) {
+          if (sErrMsg === "success") {
             const sceneList = eval('(' + JSON.stringify(SceneList) + ')');
             const sceneIds = Object.keys(SceneList);
             for (sceneId of sceneIds) {
@@ -283,7 +284,7 @@ function stealMoney(strShareId, sceneId, strFriendNick, strSceneName){
       try {
         //$.log(data);
         const {dwGetMoney,iRet,sErrMsg} = JSON.parse(data);
-        $.log(`\n偷取好友【${strFriendNick}】【${strSceneName}】财富值：¥ ${dwGetMoney}\n${$.showLog ? data: ""}`);
+        $.log(`\n偷取好友【${strFriendNick}】【${strSceneName}】财富值：¥ ${dwGetMoney ? dwGetMoney : sErrMsg}\n${$.showLog ? data: ""}`);
       } catch (e) {
         $.logErr(e, resp);
       } finally {
@@ -483,9 +484,9 @@ function funCenterState() {
   return new Promise(resolve => {
     $.get(taskUrl(`consume/FunCenterState`, `strType=1`), async(err, resp, data) => {
       try {
-        $.log(data);
+        //$.log(data);
         const {  SlotMachine: { ddwConfVersion, dwFreeCount, strCouponPool, strGoodsPool } = {}, iRet, sErrMsg } = JSON.parse(data);
-        if(dwFreeCount === 1) {
+        if(dwFreeCount == 1) {
           await $.wait(500);
           await soltMachine(strCouponPool,strGoodsPool,ddwConfVersion);
         }
@@ -507,11 +508,14 @@ function soltMachine(strCouponPool,strGoodsPool,ddwConfVersion) {
         $.log(`\n【抽奖结果】 ${strAwardPoolName != "" ? "未中奖" : strAwardPoolName} \n${ $.showLog ? data : '' }`);
       } catch (e) {
         $.logErr(e, resp);
+      } finally {
+        resolve();
       }
     });
   });
 }
 
+//https://m.jingxi.com/jxcfd/user/JoinGroup?strZone=jxcfd&bizCode=jxcfd&source=jxcfd&dwEnv=7&_cfd_t=1606569804707&ptag=139022.1.2&strGroupId=Jxcfd_GroupId_112_13709488&dwIsNewUser=0&pgtimestamp=1606569804704&phoneID=d38acd424c2f874c87a86460f6eb48901ad23860&pgUUNum=ae9876f4f73953b060946f54e13586e1&_=1606569804707&sceneval=2&g_login_type=1&callback=jsonpCBKE&g_ty=ls
 
 //提交互助码
 function submitInviteId(userName) {
