@@ -33,7 +33,7 @@ jobs:
         if: env.JD_COOKIE
         run: |
           cd ~/Clone202012/jd_scripts
-          node jjd_apple_live.js
+          node jd_apple_live.js
         env:
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
