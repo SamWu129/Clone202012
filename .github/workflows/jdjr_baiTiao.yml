@@ -6,7 +6,7 @@ name: jd_baiTiao
 on:
   workflow_dispatch:
   schedule:
-     - cron: '0 1 * * *'
+     - cron: '30 0 * * *'
   watch:
     types: started
 
