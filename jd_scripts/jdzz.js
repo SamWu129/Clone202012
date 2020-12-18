@@ -3,31 +3,27 @@
  * @Github: https://github.com/whyour
  * @Date: 2020-11-23 11:30:44
  * @LastEditors: whyour
- * @LastEditTime: 2020-11-30 13:19:06
- 
+ * @LastEditTime: 2020-12-16 21:28:30
+ * 参考 shylocks 大佬修改ck和助力 https://github.com/shylocks
+
   quanx:
   [task_local]
   0 9 * * * https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.js, tag=京东赚赚, img-url=https://raw.githubusercontent.com/58xinian/icon/master/jdzz.png, enabled=true
-  [rewrite_local]
-  ^https\:\/\/api\.m\.jd\.com\/client\.action\?functionId\=interactIndex url script-request-header https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.cookie.js
 
   loon:
   [Script]
-  http-request ^https\:\/\/api\.m\.jd\.com\/client\.action\?functionId\=interactIndex script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.cookie.js, requires-body=false, timeout=10, tag=京东赚赚cookie
   cron "0 9 * * *" script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.js, tag=京东赚赚
 
   surge:
   [Script]
   京东赚赚 = type=cron,cronexp=0 9 * * *,timeout=60,script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.js,
-  京东赚赚cookie = type=http-request,pattern=^https\:\/\/api\.m\.jd\.com\/client\.action\?functionId\=interactIndex,requires-body=0,max-size=0,script-path=https://raw.githubusercontent.com/whyour/hundun/master/quanx/jdzz.cookie.js
  *
- *  
+ *
  **/
 const $ = new Env("京东赚赚");
 
 const jdCookieNode = $.isNode() ? require("./jdCookie.js") : "";
 const JD_API_HOST = "https://api.m.jd.com";
-$.tokens = ['A8A2A2A4330303509BBEF465A3AEBB7ED026BBEA84AD78DBE93EAECB287AA9C6'];
 $.exchangePrize = parseInt($.getdata("jd_zzExchangePrize")) || 0;
 $.showLog = $.getdata("zz_showLog")
   ? $.getdata("zz_showLog") === "true"
@@ -36,27 +32,36 @@ $.result = [];
 $.cookieArr = [];
 $.allTask = [];
 $.allExchangeList = [];
+$.currentCookie = '';
+$.shareTask = null;
 
 !(async () => {
   if (!getCookies()) return;
   for (let i = 0; i < $.cookieArr.length; i++) {
-    const cookie = $.cookieArr[i];
-    if (cookie) {
+    $.currentCookie = $.cookieArr[i];
+    if ($.currentCookie) {
       const userName = decodeURIComponent(
-        cookie.match(/pt_pin=(.+?);/) && cookie.match(/pt_pin=(.+?);/)[1]
+        $.currentCookie.match(/pt_pin=(.+?);/) && $.currentCookie.match(/pt_pin=(.+?);/)[1]
       );
       console.log(`\n开始【京东账号${i + 1}】${userName}`);
-      await getExchangePrizeList($.tokens[i]);
-      await exchangePrize($.tokens[i]);
-      const startHomeInfo = await getHomeInfo($.tokens[i]);
-      await getAllTask($.tokens[i]);
-      await doTasks($.tokens[i]);
-      const endHomeInfo = await getHomeInfo($.tokens[i]);
+      $.result.push(`【京东账号${i + 1}】${userName}`);
+      const startHomeInfo = await getHomeInfo();
+      await $.wait(500);
+      await doTasks();
+      await $.wait(500);
+      const endHomeInfo = await getHomeInfo();
       $.result.push(
-        `获得京豆：${endHomeInfo.totalBeanNum - startHomeInfo.totalBeanNum}`,
-        `获得金币：${endHomeInfo.totalNum - startHomeInfo.totalNum}`,
-        `账号总金币：${endHomeInfo.totalNum}`
+        `【获得】：京东 ${endHomeInfo.totalBeanNum - startHomeInfo.totalBeanNum}，金币 ${endHomeInfo.totalNum - startHomeInfo.totalNum}`,
+        `【累计】：金币 ${endHomeInfo.totalNum}，京豆 ${endHomeInfo.totalBeanNum}`
       );
+      await $.wait(500);
+      await getExchangePrizeList();
+      await $.wait(500);
+      await exchangePrize();
+      await $.wait(500);
+      await submitInviteId(userName);
+      await $.wait(500);
+      await createAssistUser();
     }
   }
   await showMsg();
@@ -79,26 +84,95 @@ function getCookies() {
     );
     return false;
   }
-  if (!$.tokens[0]) {
-    $.msg(
-      $.name,
-      "【提示】请先去京东赚赚小程序获取token",
-      "微信搜索'京东赚赚'小程序\n即可获取Token"
-    );
-    return false;
-  }
   return true;
 }
 
-function getAllTask(token) {
-  return new Promise((resolve) => {
-    $.get(
-      taskUrl("interactTaskIndex", { mpVersion: "3.0.6" }, token),
+function isJsonString(str) {
+  try {
+    if (typeof JSON.parse(str) == "object") {
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+function submitInviteId(userName) {
+  return new Promise(resolve => {
+    if (!$.shareTask || !$.shareTask.itemId) {
+      resolve();
+      return;
+    }
+    $.log(`\n你的互助码: ${$.shareTask.itemId}`);
+    $.post(
+      {
+        url: `https://api.ninesix.cc/api/jd-zz/${$.shareTask.itemId}/${encodeURIComponent(userName)}`,
+      },
       (err, resp, _data) => {
         try {
-          const { data = {}, message } = JSON.parse(_data);
-          $.log(`\n${message}\n${$.showLog ? _data : ''}`);
-          $.allTask = data.taskDetailResList.filter((x) => x.taskId !== 3);
+          const { code, data = {} } = JSON.parse(_data);
+          $.log(`\n邀请码提交：${code}\n${$.showLog ? _data : ''}`);
+          if (data.value) {
+            $.result.push('【邀请码】提交成功！');
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve();
+        }
+      },
+    );
+  });
+}
+
+function createAssistUser() {
+  return new Promise(resolve => {
+    $.get({ url: `https://api.ninesix.cc/api/jd-zz` }, async (err, resp, _data) => {
+      try {
+        const { code, data = {} } = JSON.parse(_data);
+        $.log(`\n获取随机助力码${code}\n${$.showLog ? _data : ''}`);
+        if (!data.value) {
+          $.result.push('助力失败或者同活动助力码不存在，请再次手动执行脚本！');
+          resolve();
+          return;
+        }
+        $.get(
+          taskUrl(
+            "doHelpTask",
+            {
+              itemId: data.value,
+              taskId: $.shareTask.taskId,
+              mpVersion: "3.1.0",
+            }
+          ),
+          (err, resp, _data) => {
+            try {
+              const { data:{helpResDesc} = {}, message } = JSON.parse(_data);
+              $.log(`\n${$.shareTask.taskName}：${helpResDesc}\n${$.showLog ? _data : ''}`);
+            } catch (e) {
+              $.logErr(e, resp);
+            } finally {
+              resolve();
+            }
+          }
+        );
+      } catch (e) {
+        $.logErr(e, resp);
+      }
+    });
+  });
+}
+
+function getHomeInfo() {
+  return new Promise((resolve) => {
+    $.get(
+      taskUrl("interactTaskIndex"),
+      (err, resp, _data) => {
+        try {
+          const { data: { taskDetailResList, totalBeanNum, totalNum } = {}, message } = JSON.parse(_data);
+          $.log(`\n获取任务信息：${message}\n${$.showLog ? _data : ''}`);
+          $.allTask = taskDetailResList.filter(x => x.taskId !== 3);
+          $.shareTask = taskDetailResList.filter(x => x.taskId === 3)[0];
+          resolve({ totalBeanNum, totalNum });
         } catch (e) {
           $.logErr(e, resp);
         } finally {
@@ -109,45 +183,22 @@ function getAllTask(token) {
   });
 }
 
-function getHomeInfo(token) {
-  return new Promise((resolve) => {
-    $.get(
-      taskUrl("interactTaskIndex", { mpVersion: "3.0.6" }, token),
-      (err, resp, _data) => {
-        try {
-          const { data = {}, message } = JSON.parse(_data);
-          $.log(`\n${message}\n${$.showLog ? _data : ''}`);
-          resolve({ totalBeanNum: data.totalBeanNum, totalNum: data.totalNum });
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve();
-        }
-      }
-    );
-  });
-}
-
-async function doTasks(token) {
+async function doTasks() {
   for (let i = 0; i < $.allTask.length; i++) {
     const task = $.allTask[i];
-    await doTask(task, token);
-    await $.wait(300);
+    await $.wait(500);
+    await doTask(task);
   }
 }
 
-function doTask(task, token) {
+function doTask(task) {
   return new Promise((resolve) => {
     $.get(
       taskUrl(
         "doInteractTask",
         {
-          itemId: task.itemId,
           taskId: task.taskId,
-          mpVersion: "3.0.6",
-          taskItem: task,
-        },
-        token
+        }
       ),
       (err, resp, _data) => {
         try {
@@ -163,14 +214,14 @@ function doTask(task, token) {
   });
 }
 
-function getExchangePrizeList(token) {
+function getExchangePrizeList() {
   return new Promise((resolve) => {
     $.post(
-      taskPostUrl("getExchangePrizeList", {}, token),
+      taskPostUrl("getExchangePrizeList"),
       (err, resp, _data) => {
         try {
           const { data = {}, message } = JSON.parse(_data);
-          $.log(`\n${message}\n${$.showLog ? _data : ''}`);
+          $.log(`\n获取兑换列表：${message}\n${$.showLog ? _data : ''}`);
           $.allExchangeList = data.exchangePrizeList;
         } catch (e) {
           $.logErr(e, resp);
@@ -182,7 +233,7 @@ function getExchangePrizeList(token) {
   });
 }
 
-function exchangePrize(token) {
+function exchangePrize() {
   return new Promise((resolve) => {
     if ($.exchangePrize === 0) {
       resolve();
@@ -190,12 +241,12 @@ function exchangePrize(token) {
     }
     const { prizeId } = $.allExchangeList[$.exchangePrize - 1];
     $.post(
-      taskPostUrl("exchangePrize", { prizeId }, token),
+      taskPostUrl("exchangePrize", `prizeId=${prizeId}`),
       (err, resp, _data) => {
         try {
           const { data = {}, message } = JSON.parse(_data);
           $.log(`\n${message}\n${$.showLog ? _data : ''}`);
-          $.result.push(`${message}`)
+          $.result.push(`【兑换红包】${message}`)
         } catch (e) {
           $.logErr(e, resp);
         } finally {
@@ -213,40 +264,32 @@ function showMsg() {
   });
 }
 
-function taskUrl(function_path, body = {}, token) {
+function taskUrl(functionId, body = {}) {
   return {
-    url: `${JD_API_HOST}/client.action?functionId=${function_path}&body=${encodeURIComponent(
-      JSON.stringify(body)
-    )}&appid=wh5&loginType=1&loginWQBiz=interact&g_ty=ls&g_tk=1389236456`,
+    url: `${JD_API_HOST}/client.action?functionId=${functionId}&body=${encodeURIComponent(JSON.stringify(body))}&client=wh5`,
     headers: {
-      Cookie: `buildtime=20201120;wxapp_type=14;wxapp_version=6.9.130;province=Guangdong;city=Shenzhen;country=China;wq_auth_token=${token};network=wifi`,
-      wqreferer: `http://wq.jd.com/wxapp/pages/hd-interaction/index/index`,
-      "Content-Type": `application/json`,
-      Host: `api.m.jd.com`,
-      "User-Agent": `Mozilla/5.0 (iPhone; CPU iPhone OS 14_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/7.0.18(0x1700122c) NetType/WIFI Language/zh_CN`,
-      Referer: `https://servicewechat.com/wx8830763b00c18ac3/53/page-frame.html`,
-      "Accept-Language": `zh-cn`,
-      "Accept-Encoding": `gzip, deflate, br`,
-    },
-  };
+      'Cookie': $.currentCookie,
+      'Host': 'api.m.jd.com',
+      'Connection': 'keep-alive',
+      'Content-Type': 'application/json',
+      'Referer': 'http://wq.jd.com/wxapp/pages/hd-interaction/index/index',
+      'User-Agent': "jdapp;iPhone;9.2.2;14.2;%E4%BA%AC%E4%B8%9C/9.2.2 CFNetwork/1206 Darwin/20.1.0",
+      'Accept-Language': 'zh-cn',
+      'Accept-Encoding': 'gzip, deflate, br',
+    }
+  }
 }
 
-function taskPostUrl(function_path, body = {}, token) {
+function taskPostUrl(function_id, body = "") {
   return {
-    url: `${JD_API_HOST}/client.action?functionIdTest=${function_path}`,
+    url: `${JD_API_HOST}/client.action?functionIdTest=${function_id}`,
+    body: `functionId=${function_id}&body=${encodeURIComponent(body)}&client=wh5&clientVersion=1.0.0`,
     headers: {
-      Cookie: `buildtime=20201120;wxapp_type=14;wxapp_version=6.9.130;province=Guangdong;city=Shenzhen;country=China;wq_auth_token=${token};network=wifi`,
-      wqreferer: `http://wq.jd.com/wxapp/pages/hd-interaction/index/index`,
-      Host: `api.m.jd.com`,
-      "User-Agent": `Mozilla/5.0 (iPhone; CPU iPhone OS 14_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/7.0.18(0x1700122c) NetType/WIFI Language/zh_CN`,
-      Referer: `https://servicewechat.com/wx8830763b00c18ac3/53/page-frame.html`,
-      "Accept-Language": `zh-cn`,
-      "Accept-Encoding": `gzip, deflate, br`,
-    },
-    body: `functionId=${function_path}&body=${JSON.stringify(
-      body
-    )}&client=wh5&clientVersion=1.0.0&loginType=1&loginWQBiz=returnMoney`,
-  };
+      "Cookie": $.currentCookie,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      "User-Agent": "jdapp;iPhone;9.2.2;14.2;%E4%BA%AC%E4%B8%9C/9.2.2 CFNetwork/1206 Darwin/20.1.0",
+    }
+  }
 }
 
 // prettier-ignore
