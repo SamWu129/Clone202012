@@ -18,21 +18,17 @@ jobs:
         JD_COOKIE: ${{ secrets.JD_COOKIE }}        
     steps:
       - name: Checkout
-        run: |
-          git clone -b master https://gitee.com/lxk0301/jd_scripts.git ~/Clone202012/jd_scripts
+        uses: actions/checkout@v1
       - name: Use Node.js 12.x
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
       - name: npm install
-        if: env.JD_COOKIE
         run: |
-          cd ~/Clone202012/jd_scripts
           npm install
       - name: '运行 【jd_bean_sign】'
         if: env.JD_COOKIE
         run: |
-          cd ~/Clone202012/jd_scripts
           node jd_bean_sign.js
         env:
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
