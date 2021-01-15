@@ -29,7 +29,7 @@ jobs:
       - name: '运行 【jd_bean_sign】'
         if: env.JD_COOKIE
         run: |
-          node jd_bean_sign.js
+          node jd_scripts/jd_bean_sign.js
         env:
           PUSH_KEY: ${{ secrets.PUSH_KEY }}
           BARK_PUSH: ${{ secrets.BARK_PUSH }}
