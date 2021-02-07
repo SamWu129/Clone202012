@@ -17,14 +17,11 @@
 [task_local]
 #京东工厂
 10 * * * * https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_jdfactory.js, tag=东东工厂, enabled=true
-
 ================Loon==============
 [Script]
 cron "10 * * * *" script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_jdfactory.js,tag=东东工厂
-
 ===============Surge=================
 东东工厂 = type=cron,cronexp="10 * * * *",wake-system=1,timeout=20,script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_jdfactory.js
-
 ============小火箭=========
 东东工厂 = type=cron,script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_jdfactory.js, cronexpr="10 * * * *", timeout=200, enable=true
  */
@@ -619,30 +616,6 @@ function jdfactory_getHomeData() {
     })
   })
 }
-
-
-getArrRandomly = (arr) => {
-    var len = arr.length;
-    for (var i = len - 1; i >= 0; i--) {
-      var randomIndex = Math.floor(Math.random() * (i + 1));
-      var itemIndex = arr[randomIndex];
-      arr[randomIndex] = arr[i];
-      arr[i] = itemIndex;
-    }
-    return arr;
-  }
-  
- 
-  getRandomArr = (arr=[],num) => {
-    const tmpArr = this.getArrRandomly(arr);
-    let arrList = [];
-    for (let i = 0; i < num; i++) {
-      arrList.push(tmpArr[i]);
-    };
-    return arrList;
-  }
-
-
 function readShareCode() {
   console.log(`开始`)
   return new Promise(async resolve => {
@@ -682,8 +655,7 @@ function shareCodesFormat() {
     }
     const readShareCodeRes = await readShareCode();
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      //$.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
-    $.newShareCodes = [...new Set([...$.newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
+      $.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify($.newShareCodes)}`)
     resolve();
