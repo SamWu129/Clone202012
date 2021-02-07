@@ -443,6 +443,30 @@ async function showMsg() {
     $.log(`\n${message}\n`);
   }
 }
+
+
+getArrRandomly = (arr) => {
+    var len = arr.length;
+    for (var i = len - 1; i >= 0; i--) {
+      var randomIndex = Math.floor(Math.random() * (i + 1));
+      var itemIndex = arr[randomIndex];
+      arr[randomIndex] = arr[i];
+      arr[i] = itemIndex;
+    }
+    return arr;
+  }
+  
+ 
+  getRandomArr = (arr=[],num) => {
+    const tmpArr = this.getArrRandomly(arr);
+    let arrList = [];
+    for (let i = 0; i < num; i++) {
+      arrList.push(tmpArr[i]);
+    };
+    return arrList;
+  }
+
+
 function readShareCode() {
   return new Promise(async resolve => {
     //$.get({url: `http://jd.turinglabs.net/api/v2/jd/pet/read/${randomCount}/`, 'timeout': 10000}, (err, resp, data) => {
@@ -482,7 +506,8 @@ function shareCodesFormat() {
     const readShareCodeRes = await readShareCode();
     //const readShareCodeRes = null;
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
+      //newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
+    $.newShareCodes = [...new Set([...$.newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify(newShareCodes)}`)
     resolve();
