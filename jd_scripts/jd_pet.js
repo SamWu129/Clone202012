@@ -3,25 +3,19 @@
 更新时间：2021-01-19
 已支持IOS双京东账号,Node.js支持N个京东账号
 脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
-
 互助码shareCode请先手动运行脚本查看打印可看到
 一天只能帮助5个人。多出的助力码无效
-
 =================================Quantumultx=========================
 [task_local]
 #东东萌宠
 15 6-18/6 * * * https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_pet.js, tag=东东萌宠, img-url=https://raw.githubusercontent.com/58xinian/icon/master/jdmc.png, enabled=true
-
 =================================Loon===================================
 [Script]
 cron "15 6-18/6 * * *" script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_pet.js,tag=东东萌宠
-
 ===================================Surge================================
 东东萌宠 = type=cron,cronexp="15 6-18/6 * * *",wake-system=1,timeout=120,script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_pet.js
-
 ====================================小火箭=============================
 东东萌宠 = type=cron,script-path=https://raw.githubusercontent.com/LXK9301/jd_scripts/master/jd_pet.js, cronexpr="15 6-18/6 * * *", timeout=200, enable=true
-
 */
 const $ = new Env('东东萌宠');
 let cookiesArr = [], cookie = '', jdPetShareArr = [], isBox = false, notify, newShareCodes;
@@ -443,30 +437,6 @@ async function showMsg() {
     $.log(`\n${message}\n`);
   }
 }
-
-
-getArrRandomly = (arr) => {
-    var len = arr.length;
-    for (var i = len - 1; i >= 0; i--) {
-      var randomIndex = Math.floor(Math.random() * (i + 1));
-      var itemIndex = arr[randomIndex];
-      arr[randomIndex] = arr[i];
-      arr[i] = itemIndex;
-    }
-    return arr;
-  }
-  
- 
-  getRandomArr = (arr=[],num) => {
-    const tmpArr = this.getArrRandomly(arr);
-    let arrList = [];
-    for (let i = 0; i < num; i++) {
-      arrList.push(tmpArr[i]);
-    };
-    return arrList;
-  }
-
-
 function readShareCode() {
   return new Promise(async resolve => {
     //$.get({url: `http://jd.turinglabs.net/api/v2/jd/pet/read/${randomCount}/`, 'timeout': 10000}, (err, resp, data) => {
@@ -506,8 +476,7 @@ function shareCodesFormat() {
     const readShareCodeRes = await readShareCode();
     //const readShareCodeRes = null;
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      //newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
-    $.newShareCodes = [...new Set([...$.newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
+      newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify(newShareCodes)}`)
     resolve();
