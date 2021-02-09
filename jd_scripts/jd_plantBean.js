@@ -508,6 +508,18 @@ async function helpShare(plantUuid) {
 async function plantBeanIndex() {
   $.plantBeanIndexResult = await request('plantBeanIndex');//plantBeanIndexBody
 }
+
+function getRandomArrayElements(arr, count) {
+    var shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;
+    while (i-- > min) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+    }
+    return shuffled.slice(min);
+}
+
 function readShareCode() {
   return new Promise(async resolve => {
     //$.get({url: `http://api.turinglabs.net/api/v1/jd/bean/read/${randomCount}/`, timeout: 10000}, (err, resp, data) => {
@@ -519,7 +531,7 @@ function readShareCode() {
         } else {
           if (data) {
             console.log(`随机取个${randomCount}码放到您固定的互助码后面(不影响已有固定互助)`)
-            data = JSON.parse(data);
+            data = getRandomArrayElements(JSON.parse(data), randomCount);
           }
         }
       } catch (e) {
