@@ -319,11 +319,34 @@ async function receiveReward(body) {
   })
 }
 
+
+getArrRandomly = (arr) => {
+    var len = arr.length;
+    for (var i = len - 1; i >= 0; i--) {
+      var randomIndex = Math.floor(Math.random() * (i + 1));
+      var itemIndex = arr[randomIndex];
+      arr[randomIndex] = arr[i];
+      arr[i] = itemIndex;
+    }
+    return arr;
+  }
+  
+ 
+  getRandomArr = (arr=[],num) => {
+    const tmpArr = getArrRandomly(arr);
+    let arrList = [];
+    for (let i = 0; i < num; i++) {
+      arrList.push(tmpArr[i]);
+    };
+    return arrList;
+  }
+
+
 function readShareCode() {
-  console.log(`开始`)
+  console.log(`💕开始读取朱丽娜黛娜💕`)
   return new Promise(async resolve => {
     $.get({
-      url: `http://jd.turinglabs.net/api/v2/jd/farm/read/${randomCount}/`,
+      url: `https://raw.githubusercontent.com/jd1994527314/iosrule/cs/JD_TG/GJ.json`,
       'timeout': 10000
     }, (err, resp, data) => {
       try {
@@ -361,7 +384,8 @@ function shareCodesFormat() {
     }
     const readShareCodeRes = await readShareCode();
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      $.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
+      //$.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
+    $.newShareCodes = [...new Set([...$.newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify($.newShareCodes)}`)
     resolve();
