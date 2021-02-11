@@ -46,8 +46,10 @@ if ($.isNode()) {
 }
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 const inviteCodes = [
-  `cgxZaDXWZPCmiUa2akPVmFMI27K6antJzucULQPYNim_BPEW1Dwd@cgxZdTXtIrPYuAqfDgSpusxr97nagU6hwFa3TXxnqM95u3ib-xt4nWqZdz8@cgxZdTXtIO-O6QmYDVf67KCEJ19JcybuMB2_hYu8NSNQg0oS2Z_FpMce45g@cgxZdTXtILiLvg7OAASp61meehou4OeZvqbjghsZlc3rI5SBk7b3InUqSQ0@cgxZ9_MZ8gByP7FZ368dN8oTZBwGieaH5HvtnvXuK1Epn_KK8yol8OYGw7h3M2j_PxSZvYA`,
-  `cgxZaDXWZPCmiUa2akPVmFMI27K6antJzucULQPYNim_BPEW1Dwd@cgxZdTXtIrPYuAqfDgSpusxr97nagU6hwFa3TXxnqM95u3ib-xt4nWqZdz8@cgxZdTXtIO-O6QmYDVf67KCEJ19JcybuMB2_hYu8NSNQg0oS2Z_FpMce45g@cgxZdTXtILiLvg7OAASp61meehou4OeZvqbjghsZlc3rI5SBk7b3InUqSQ0@cgxZdTXtIumO4w2cDgSqvYcqHwjaAzLxu0S371Dh_fctFJtN0tXYzdR7JaY`
+  `cgxZdTXtXtqDk2mXSVz4hihTvbdyVl7Rj2pHN9NBSkncKftjE5CDVoQ@cgxZdTXtesGznXCJTXTSpVNveaE6Bhunp_1J1RUpgBWTLqqGdKI2Fms@cgxZdTXtI7rcuFzLWVCsuzig2OPwbFwepFKIxfTUPrXVqPToWTpCuU_YVUI`,
+  `cgxZfj3eceSbqw_LCAzloy1WwJ8aubMoDCw1Xl0_gkM@cgxZdTXtesGznXCJTXTSpVNveaE6Bhunp_1J1RUpgBWTLqqGdKI2Fms@cgxZdTXtI7rcuFzLWVCsuzig2OPwbFwepFKIxfTUPrXVqPToWTpCuU_YVUI`,
+  `cgxZfj3eceSbqw_LCAzloy1WwJ8aubMoDCw1Xl0_gkM@cgxZdTXtXtqDk2mXSVz4hihTvbdyVl7Rj2pHN9NBSkncKftjE5CDVoQ@cgxZdTXtI7rcuFzLWVCsuzig2OPwbFwepFKIxfTUPrXVqPToWTpCuU_YVUI`,
+  `cgxZfj3eceSbqw_LCAzloy1WwJ8aubMoDCw1Xl0_gkMcgxZdTXtXtqDk2mXSVz4hihTvbdyVl7Rj2pHN9NBSkncKftjE5CDVoQ@cgxZdTXtesGznXCJTXTSpVNveaE6Bhunp_1J1RUpgBWTLqqGdKI2Fms`,
 ];
 const pkInviteCodes = [
   'IgNWdiLGaPadvlqJQnnKp27-YpAvKvSYNTSkTGvZylf_0wcvqD9EMkohENs@IgNWdiLGaPaZskfACQyhgLSpZWps-WtQEW3McibR@IgNWdiLGaPaAvmHPAQf769XqjJjMyRirPzN9-AS-WHY9Y_G7t9Cwe5gdiI2qEvDd@IgNWdiLGaPYCeJUfsq18UNi5ln9xEZSPRdOue8Wl3hJTS2SQzU0vulL0fHeULJaIfgqHFd7f_a8@IgNWdiLGaPYCeJUfsq18UNi5ln9xEZSPRdOue8Wl3hLRjZBAJLHzBpcl18AeskNYctp_9g',
@@ -1050,8 +1052,30 @@ function killCoupon(skuId) {
   })
 }
 
+getArrRandomly = (arr) => {
+    var len = arr.length;
+    for (var i = len - 1; i >= 0; i--) {
+      var randomIndex = Math.floor(Math.random() * (i + 1));
+      var itemIndex = arr[randomIndex];
+      arr[randomIndex] = arr[i];
+      arr[i] = itemIndex;
+    }
+    return arr;
+  }
+  
+ 
+  getRandomArr = (arr=[],num) => {
+    const tmpArr = getArrRandomly(arr);
+    let arrList = [];
+    for (let i = 0; i < num; i++) {
+      arrList.push(tmpArr[i]);
+    };
+    return arrList;
+  }
+
+
 function readShareCode() {
-  console.log(`开始`)
+  console.log(`💕开始读取朱丽娜黛娜💕`)
   return new Promise(async resolve => {
     $.get({
       url: `https://code.chiang.fun/api/v1/jd/jdnian/read/${randomCount}/`,
@@ -1120,7 +1144,8 @@ function shareCodesFormat() {
     }
     const readShareCodeRes = await readShareCode();
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      $.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
+      //$.newShareCodes = [...new Set([...$.newShareCodes, ...(readShareCodeRes.data || [])])];
+   $.newShareCodes = [...new Set([...$.newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify($.newShareCodes)}`)
     resolve();
