@@ -24,9 +24,11 @@ let cookiesArr = [], cookie = '', jdPetShareArr = [], isBox = false, notify, new
 //下面给出两个账号的填写示例（iOS只支持2个京东账号）
 let shareCodes = [ // IOS本地脚本用户这个列表填入你要助力的好友的shareCode
    //账号一的好友shareCode,不同好友的shareCode中间用@符号隔开
-  'MTAxODc2NTEzNTAwMDAwMDAwMjg3MDg2MA==@MTAxODc2NTEzMzAwMDAwMDAyNzUwMDA4MQ==@MTAxODc2NTEzMjAwMDAwMDAzMDI3MTMyOQ==@MTAxODc2NTEzNDAwMDAwMDAzMDI2MDI4MQ==@MTAxODcxOTI2NTAwMDAwMDAxOTQ3MjkzMw==',
+  'MTAxODc2NTEzMTAwMDAwMDAyNzM1OTgyOQ==@MTE1NDAxNzYwMDAwMDAwNDA0NjI0MDk=@MTAxODc2NTEzMTAwMDAwMDAyMTE1NzkyNw==',
   //账号二的好友shareCode,不同好友的shareCode中间用@符号隔开
-  'MTAxODc2NTEzMjAwMDAwMDAzMDI3MTMyOQ==@MTAxODcxOTI2NTAwMDAwMDAyNjA4ODQyMQ==@MTAxODc2NTEzOTAwMDAwMDAyNzE2MDY2NQ==@MTE1NDUyMjEwMDAwMDAwNDI0MDM2MDc=',
+  'MTAxODc2NTEzMTAwMDAwMDAyNjg3ODA3Nw==@MTE1NDAxNzYwMDAwMDAwNDA0NjI0MDk=@MTAxODc2NTEzMTAwMDAwMDAyMTE1NzkyNw==',
+  'MTAxODc2NTEzMTAwMDAwMDAyNjg3ODA3Nw==@MTAxODc2NTEzMTAwMDAwMDAyNzM1OTgyOQ==@MTAxODc2NTEzMTAwMDAwMDAyMTE1NzkyNw==',
+  'MTAxODc2NTEzMTAwMDAwMDAyNjg3ODA3Nw==@MTAxODc2NTEzMTAwMDAwMDAyNzM1OTgyOQ==@MTE1NDAxNzYwMDAwMDAwNDA0NjI0MDk=',
 ]
 let message = '', subTitle = '', option = {};
 let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
@@ -437,7 +439,31 @@ async function showMsg() {
     $.log(`\n${message}\n`);
   }
 }
+
+getArrRandomly = (arr) => {
+    var len = arr.length;
+    for (var i = len - 1; i >= 0; i--) {
+      var randomIndex = Math.floor(Math.random() * (i + 1));
+      var itemIndex = arr[randomIndex];
+      arr[randomIndex] = arr[i];
+      arr[i] = itemIndex;
+    }
+    return arr;
+  }
+  
+ 
+  getRandomArr = (arr=[],num) => {
+    const tmpArr = getArrRandomly(arr);
+    let arrList = [];
+    for (let i = 0; i < num; i++) {
+      arrList.push(tmpArr[i]);
+    };
+    return arrList;
+  }
+
+
 function readShareCode() {
+  console.log(`💕开始读取朱丽娜黛娜💕`)  
   return new Promise(async resolve => {
     //$.get({url: `http://jd.turinglabs.net/api/v2/jd/pet/read/${randomCount}/`, 'timeout': 10000}, (err, resp, data) => {
     $.get({url: `https://raw.githubusercontent.com/jd1994527314/iosrule/cs/JD_TG/MC.json`, 'timeout': 10000}, (err, resp, data) => {
@@ -476,7 +502,8 @@ function shareCodesFormat() {
     const readShareCodeRes = await readShareCode();
     //const readShareCodeRes = null;
     if (readShareCodeRes && readShareCodeRes.code === 200) {
-      newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
+      //newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
+    newShareCodes = [...new Set([...newShareCodes, ...(getRandomArr(getArrRandomly(readShareCodeRes.data),randomCount)|| [])])];
     }
     console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify(newShareCodes)}`)
     resolve();
