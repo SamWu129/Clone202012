@@ -33,8 +33,10 @@ let helpSelf = false // 循环助力，默认关闭
 let applyJdBean = 0; //疯狂的JOY京豆兑换，目前最小值为2000京豆，默认为 0 不开启京豆兑换
 let cookiesArr = [], cookie = '', message = '';
 const inviteCodes = [
-  'EdLPh8A6X5G1iWXu-uPYfA==@0gUO7F7N-4HVDh9mdQC2hg==@fUJTgR9z26fXdQgTvt_bgqt9zd5YaBeE@nCQQXQHKGjPCb7jkd8q2U-aCTjZMxL3s@2boGLV7TonMex8-nrT6EGat9zd5YaBeE',
-  'EdLPh8A6X5G1iWXu-uPYfA==@0gUO7F7N-4HVDh9mdQC2hg==@fUJTgR9z26fXdQgTvt_bgqt9zd5YaBeE@nCQQXQHKGjPCb7jkd8q2U-aCTjZMxL3s@2boGLV7TonMex8-nrT6EGat9zd5YaBeE'
+  '9cECOkO-B1QumNPkdm3wHA==@w_Eq03-4WUM-ScZ_jeNqzA==@6NYgYjfcy0N2YUB1685BE6t9zd5YaBeE',
+  'Pmrn8BfQgW_xKbqC2JEUpg==@w_Eq03-4WUM-ScZ_jeNqzA==@6NYgYjfcy0N2YUB1685BE6t9zd5YaBeE',
+  'Pmrn8BfQgW_xKbqC2JEUpg==@9cECOkO-B1QumNPkdm3wHA==@6NYgYjfcy0N2YUB1685BE6t9zd5YaBeE',
+  'Pmrn8BfQgW_xKbqC2JEUpg==@9cECOkO-B1QumNPkdm3wHA==@w_Eq03-4WUM-ScZ_jeNqzA==',
 ];
 const randomCount = $.isNode() ? 10 : 5;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
