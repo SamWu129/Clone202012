@@ -28,7 +28,7 @@ jobs:
         if: env.JD_COOKIE
         run: |
           cd ~/Clone202012/jd_scripts
-          npm install
+          npm install ws
       - name: '运行 【jd_mlyjy】'
         if: env.JD_COOKIE
         run: |
